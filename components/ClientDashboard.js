@@ -314,7 +314,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                 )}
 
                                 {/* Quick Stats Grid */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
                                     <div className="card text-center">
                                         <Trophy className="w-10 h-10 text-[#FF6B35] mx-auto mb-3" />
                                         <div className="text-3xl font-bold text-[#E8E9ED] mb-1">{stats.totalWorkouts}</div>
@@ -333,7 +333,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                 </div>
 
                                 {/* Motivational Section */}
-                                <div className="card bg-gradient-to-br from-[#FF6B35]/10 to-[#E85A2A]/5 border-[#FF6B35]/30">
+                                <div className="card bg-gradient-to-br from-[#FF6B35]/10 to-[#E85A2A]/5 border-[#FF6B35]/30 mt-6">
                                     <div className="flex items-start gap-4">
                                         <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B35] to-[#E85A2A] rounded-full flex items-center justify-center flex-shrink-0">
                                             <MessageCircle className="w-6 h-6 text-white" />
