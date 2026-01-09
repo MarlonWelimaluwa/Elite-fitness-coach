@@ -53,7 +53,7 @@ export default function Broadcasts() {
         <div className="animate-fadeIn">
             <h2 className="text-2xl font-bold text-[#E8E9ED] mb-6">Coach Announcements 📢</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 {broadcasts.map((broadcast) => (
                     <div
                         key={broadcast.id}

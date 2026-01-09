@@ -23,10 +23,14 @@ export default function CoachDashboard({ user, onLogout }) {
     const [showBroadcast, setShowBroadcast] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState({ title: '', message: '' });
+    const [allClients, setAllClients] = useState([]);
+    const [selectedClients, setSelectedClients] = useState([]);
+    const [selectAll, setSelectAll] = useState(true);
 
     useEffect(() => {
         fetchCoachStats();
         fetchUserName();
+        fetchAllClients();
     }, [user]);
 
     const fetchUserName = async () => {
@@ -42,6 +46,24 @@ export default function CoachDashboard({ user, onLogout }) {
             setUserName(data?.full_name || '');
         } catch (error) {
             console.error('Error fetching user name:', error);
+        }
+    };
+
+    const fetchAllClients = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, full_name, email')
+                .neq('role', 'coach')
+                .order('full_name', { ascending: true });
+
+            if (error) throw error;
+
+            setAllClients(data || []);
+            // Initially select all clients
+            setSelectedClients(data?.map(c => c.id) || []);
+        } catch (error) {
+            console.error('Error fetching clients:', error);
         }
     };
 
@@ -120,6 +142,11 @@ export default function CoachDashboard({ user, onLogout }) {
             return;
         }
 
+        if (selectedClients.length === 0) {
+            alert('Please select at least one client');
+            return;
+        }
+
         try {
             const { error } = await supabase.from('broadcasts').insert([
                 {
@@ -135,6 +162,8 @@ export default function CoachDashboard({ user, onLogout }) {
             setShowBroadcast(false);
             setShowSuccess(true);
             setBroadcastMessage({ title: '', message: '' });
+            setSelectAll(true);
+            setSelectedClients(allClients.map(c => c.id));
 
             // Hide success message after 3 seconds
             setTimeout(() => {
@@ -143,6 +172,29 @@ export default function CoachDashboard({ user, onLogout }) {
         } catch (error) {
             console.error('Error sending broadcast:', error);
             alert('Failed to send broadcast. Please try again.');
+        }
+    };
+
+    const handleToggleClient = (clientId) => {
+        if (selectedClients.includes(clientId)) {
+            setSelectedClients(selectedClients.filter(id => id !== clientId));
+            setSelectAll(false);
+        } else {
+            const newSelected = [...selectedClients, clientId];
+            setSelectedClients(newSelected);
+            if (newSelected.length === allClients.length) {
+                setSelectAll(true);
+            }
+        }
+    };
+
+    const handleToggleAll = () => {
+        if (selectAll) {
+            setSelectedClients([]);
+            setSelectAll(false);
+        } else {
+            setSelectedClients(allClients.map(c => c.id));
+            setSelectAll(true);
         }
     };
 
@@ -452,9 +504,48 @@ export default function CoachDashboard({ user, onLogout }) {
             {/* Broadcast Modal */}
             {showBroadcast && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-                    <div className="relative w-full max-w-lg">
-                        <div className="card animate-fadeIn">
-                            <h2 className="text-2xl font-bold text-[#E8E9ED] mb-6">Send Broadcast Message</h2>
+                    <div className="relative w-full max-w-2xl">
+                        <div className="card animate-fadeIn max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-2xl font-bold text-[#E8E9ED] mb-6">Send Message</h2>
+
+                            {/* Client Selection */}
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="text-sm font-medium text-[#E8E9ED]">Select Recipients</label>
+                                    <button
+                                        onClick={handleToggleAll}
+                                        className="text-[#FF6B35] hover:text-[#E85A2A] text-sm font-medium"
+                                    >
+                                        {selectAll ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                </div>
+
+                                <div className="bg-[#0A0E27] rounded-lg p-4 max-h-48 overflow-y-auto">
+                                    <div className="space-y-2">
+                                        {allClients.map((client) => (
+                                            <label
+                                                key={client.id}
+                                                className="flex items-center space-x-3 p-2 rounded hover:bg-[#1A1F3A] cursor-pointer"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedClients.includes(client.id)}
+                                                    onChange={() => handleToggleClient(client.id)}
+                                                    className="w-4 h-4 text-[#FF6B35] bg-[#1A1F3A] border-[#9CA3AF] rounded focus:ring-[#FF6B35] focus:ring-2"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="text-[#E8E9ED] text-sm font-medium">{client.full_name || 'No Name'}</div>
+                                                    <div className="text-[#9CA3AF] text-xs">{client.email}</div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-xs text-[#9CA3AF] mt-2">
+                                    {selectedClients.length} client{selectedClients.length !== 1 ? 's' : ''} selected
+                                </p>
+                            </div>
+
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-[#E8E9ED] mb-2">Title</label>
@@ -473,13 +564,13 @@ export default function CoachDashboard({ user, onLogout }) {
                                         onChange={(e) => setBroadcastMessage({ ...broadcastMessage, message: e.target.value })}
                                         className="input resize-none"
                                         rows="5"
-                                        placeholder="Your message to all clients..."
+                                        placeholder="Your message to clients..."
                                     ></textarea>
                                 </div>
                                 <div className="flex gap-3">
                                     <button onClick={handleSendBroadcast} className="flex-1 btn-primary">
                                         <Send size={18} className="mr-2 inline" />
-                                        Send to All Clients
+                                        Send to {selectedClients.length} Client{selectedClients.length !== 1 ? 's' : ''}
                                     </button>
                                     <button onClick={() => setShowBroadcast(false)} className="btn-secondary">
                                         Cancel
