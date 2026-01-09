@@ -13,6 +13,7 @@ import Broadcasts from './dashboard/Broadcasts';
 export default function ClientDashboard({ user, onLogout }) {
     const [activeTab, setActiveTab] = useState('home');
     const [userName, setUserName] = useState('');
+    const [unreadBroadcasts, setUnreadBroadcasts] = useState(0);
     const [stats, setStats] = useState({
         currentStreak: 0,
         longestStreak: 0,
@@ -27,6 +28,19 @@ export default function ClientDashboard({ user, onLogout }) {
         fetchClientStats();
         updateEngagement();
         fetchUserName();
+        fetchUnreadBroadcasts();
+
+        // Subscribe to new broadcasts
+        const channel = supabase
+            .channel('broadcasts')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, () => {
+                fetchUnreadBroadcasts();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [user]);
 
     const fetchUserName = async () => {
@@ -43,6 +57,31 @@ export default function ClientDashboard({ user, onLogout }) {
         } catch (error) {
             console.error('Error fetching user name:', error);
         }
+    };
+
+    const fetchUnreadBroadcasts = async () => {
+        try {
+            // Get last viewed timestamp from localStorage
+            const lastViewed = localStorage.getItem(`last_viewed_broadcasts_${user.id}`) || new Date(0).toISOString();
+
+            const { data, error } = await supabase
+                .from('broadcasts')
+                .select('id', { count: 'exact' })
+                .gt('sent_at', lastViewed);
+
+            if (error) throw error;
+
+            setUnreadBroadcasts(data?.length || 0);
+        } catch (error) {
+            console.error('Error fetching unread broadcasts:', error);
+        }
+    };
+
+    const handleMessagesClick = () => {
+        setActiveTab('messages');
+        // Mark broadcasts as read
+        localStorage.setItem(`last_viewed_broadcasts_${user.id}`, new Date().toISOString());
+        setUnreadBroadcasts(0);
     };
 
     const updateEngagement = async () => {
@@ -175,11 +214,12 @@ export default function ClientDashboard({ user, onLogout }) {
                             <nav className="space-y-2">
                                 {tabs.map((tab) => {
                                     const Icon = tab.icon;
+                                    const isMessages = tab.id === 'messages';
                                     return (
                                         <button
                                             key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                                            onClick={() => isMessages ? handleMessagesClick() : setActiveTab(tab.id)}
+                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all relative ${
                                                 activeTab === tab.id
                                                     ? 'bg-gradient-to-r from-[#FF6B35] to-[#E85A2A] text-white'
                                                     : 'text-[#9CA3AF] hover:bg-[#1A1F3A]'
@@ -187,6 +227,11 @@ export default function ClientDashboard({ user, onLogout }) {
                                         >
                                             <Icon size={20} />
                                             <span className="font-medium">{tab.name}</span>
+                                            {isMessages && unreadBroadcasts > 0 && (
+                                                <span className="absolute top-2 right-2 w-5 h-5 bg-[#FF6B35] rounded-full text-white text-xs flex items-center justify-center font-bold">
+                                                    {unreadBroadcasts}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}

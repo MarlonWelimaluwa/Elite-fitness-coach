@@ -50,31 +50,33 @@ export default function Broadcasts() {
     }
 
     return (
-        <div className="space-y-4 animate-fadeIn">
+        <div className="animate-fadeIn">
             <h2 className="text-2xl font-bold text-[#E8E9ED] mb-6">Coach Announcements 📢</h2>
 
-            {broadcasts.map((broadcast) => (
-                <div
-                    key={broadcast.id}
-                    className="card hover:border-[#FF6B35] cursor-pointer transition-all"
-                    onClick={() => setSelectedBroadcast(broadcast)}
-                >
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B35] to-[#E85A2A] rounded-full flex items-center justify-center flex-shrink-0">
-                            <MessageSquare className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-bold text-[#E8E9ED] mb-1">{broadcast.title}</h3>
-                            <p className="text-[#9CA3AF] text-sm mb-2 line-clamp-2">{broadcast.message}</p>
-                            <div className="flex items-center gap-4 text-xs text-[#9CA3AF]">
-                                <span>From: {broadcast.profiles?.full_name || 'Coach'}</span>
-                                <span>•</span>
-                                <span>{new Date(broadcast.sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            <div className="space-y-4">
+                {broadcasts.map((broadcast) => (
+                    <div
+                        key={broadcast.id}
+                        className="card hover:border-[#FF6B35] cursor-pointer transition-all"
+                        onClick={() => setSelectedBroadcast(broadcast)}
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B35] to-[#E85A2A] rounded-full flex items-center justify-center flex-shrink-0">
+                                <MessageSquare className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-[#E8E9ED] mb-1">{broadcast.title}</h3>
+                                <p className="text-[#9CA3AF] text-sm mb-2 line-clamp-2">{broadcast.message}</p>
+                                <div className="flex items-center gap-4 text-xs text-[#9CA3AF]">
+                                    <span>From: {broadcast.profiles?.full_name || 'Coach'}</span>
+                                    <span>•</span>
+                                    <span>{new Date(broadcast.sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
 
             {/* Broadcast Detail Modal */}
             {selectedBroadcast && (

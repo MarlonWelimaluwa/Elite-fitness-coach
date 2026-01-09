@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Dumbbell, Users, Calendar, DollarSign, Bell, MessageSquare, Settings, TrendingUp, AlertTriangle, CheckCircle, Clock, Home } from 'lucide-react';
+import { LogOut, Dumbbell, Users, Calendar, DollarSign, Bell, MessageSquare, Settings, TrendingUp, AlertTriangle, CheckCircle, Clock, Home, Send } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { supabase } from '@/lib/supabase';
 
@@ -9,6 +9,7 @@ import AdminPanel from './dashboard/AdminPanel';
 
 export default function CoachDashboard({ user, onLogout }) {
     const [activeTab, setActiveTab] = useState('home');
+    const [userName, setUserName] = useState('');
     const [stats, setStats] = useState({
         totalClients: 0,
         activeClients: 0,
@@ -20,11 +21,29 @@ export default function CoachDashboard({ user, onLogout }) {
     });
     const [loading, setLoading] = useState(true);
     const [showBroadcast, setShowBroadcast] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState({ title: '', message: '' });
 
     useEffect(() => {
         fetchCoachStats();
+        fetchUserName();
     }, [user]);
+
+    const fetchUserName = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
+
+            if (error) throw error;
+
+            setUserName(data?.full_name || '');
+        } catch (error) {
+            console.error('Error fetching user name:', error);
+        }
+    };
 
     const fetchCoachStats = async () => {
         try {
@@ -112,9 +131,15 @@ export default function CoachDashboard({ user, onLogout }) {
 
             if (error) throw error;
 
-            alert('Broadcast sent successfully!');
+            // Show success message
             setShowBroadcast(false);
+            setShowSuccess(true);
             setBroadcastMessage({ title: '', message: '' });
+
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                setShowSuccess(false);
+            }, 3000);
         } catch (error) {
             console.error('Error sending broadcast:', error);
             alert('Failed to send broadcast. Please try again.');
@@ -208,7 +233,7 @@ export default function CoachDashboard({ user, onLogout }) {
                                 {/* Welcome Header */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h1 className="text-3xl font-bold text-[#E8E9ED] mb-2">Coach Dashboard 🎯</h1>
+                                        <h1 className="text-3xl font-bold text-[#E8E9ED] mb-2">Welcome{userName ? `, ${userName}` : ''}! 🎯</h1>
                                         <p className="text-[#9CA3AF]">Manage your clients and grow your business</p>
                                     </div>
                                     <button onClick={() => setShowBroadcast(true)} className="btn-primary flex items-center">
@@ -409,6 +434,21 @@ export default function CoachDashboard({ user, onLogout }) {
                 </div>
             </div>
 
+            {/* Success Message */}
+            {showSuccess && (
+                <div className="fixed top-4 right-4 z-50 animate-fadeIn">
+                    <div className="card bg-green-500/10 border-green-500/30 flex items-center gap-3 min-w-[300px]">
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-green-500 font-bold">Broadcast Sent!</h3>
+                            <p className="text-[#9CA3AF] text-sm">All clients have been notified</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Broadcast Modal */}
             {showBroadcast && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
@@ -438,6 +478,7 @@ export default function CoachDashboard({ user, onLogout }) {
                                 </div>
                                 <div className="flex gap-3">
                                     <button onClick={handleSendBroadcast} className="flex-1 btn-primary">
+                                        <Send size={18} className="mr-2 inline" />
                                         Send to All Clients
                                     </button>
                                     <button onClick={() => setShowBroadcast(false)} className="btn-secondary">
