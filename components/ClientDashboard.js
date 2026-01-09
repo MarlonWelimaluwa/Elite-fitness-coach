@@ -8,9 +8,11 @@ import { supabase } from '@/lib/supabase';
 import WorkoutTracker from './dashboard/WorkoutTracker';
 import BookingSessions from './dashboard/BookingSessions';
 import ProgressTracker from './dashboard/ProgressTracker';
+import Broadcasts from './dashboard/Broadcasts';
 
 export default function ClientDashboard({ user, onLogout }) {
     const [activeTab, setActiveTab] = useState('home');
+    const [userName, setUserName] = useState('');
     const [stats, setStats] = useState({
         currentStreak: 0,
         longestStreak: 0,
@@ -24,7 +26,24 @@ export default function ClientDashboard({ user, onLogout }) {
     useEffect(() => {
         fetchClientStats();
         updateEngagement();
+        fetchUserName();
     }, [user]);
+
+    const fetchUserName = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
+
+            if (error) throw error;
+
+            setUserName(data?.full_name || '');
+        } catch (error) {
+            console.error('Error fetching user name:', error);
+        }
+    };
 
     const updateEngagement = async () => {
         try {
@@ -113,6 +132,7 @@ export default function ClientDashboard({ user, onLogout }) {
         { id: 'workouts', name: 'Workouts', icon: Dumbbell },
         { id: 'booking', name: 'Book Session', icon: Calendar },
         { id: 'progress', name: 'Progress', icon: TrendingUp },
+        { id: 'messages', name: 'Messages', icon: MessageCircle },
         { id: 'photos', name: 'Photos', icon: Camera },
     ];
 
@@ -180,7 +200,7 @@ export default function ClientDashboard({ user, onLogout }) {
                             <div className="space-y-6 animate-fadeIn">
                                 {/* Welcome Header */}
                                 <div>
-                                    <h1 className="text-3xl font-bold text-[#E8E9ED] mb-2">Welcome Back! 💪</h1>
+                                    <h1 className="text-3xl font-bold text-[#E8E9ED] mb-2">Welcome Back{userName ? `, ${userName}` : ''}! 💪</h1>
                                     <p className="text-[#9CA3AF]">Keep crushing your goals!</p>
                                 </div>
 
@@ -352,6 +372,7 @@ export default function ClientDashboard({ user, onLogout }) {
                         {activeTab === 'workouts' && <WorkoutTracker user={user} />}
                         {activeTab === 'booking' && <BookingSessions user={user} />}
                         {activeTab === 'progress' && <ProgressTracker user={user} />}
+                        {activeTab === 'messages' && <Broadcasts />}
                         {activeTab === 'photos' && <div className="text-[#E8E9ED]">Progress Photos (We'll build this next)</div>}
                     </main>
                 </div>
