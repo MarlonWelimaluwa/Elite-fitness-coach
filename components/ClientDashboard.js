@@ -16,7 +16,7 @@ export default function ClientDashboard({ user, onLogout }) {
         longestStreak: 0,
         totalWorkouts: 0,
         nextSession: null,
-        recentProgress: null,
+        recentProgress: [],
         weeklyActivity: [],
     });
     const [loading, setLoading] = useState(true);
