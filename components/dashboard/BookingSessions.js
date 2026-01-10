@@ -158,8 +158,8 @@ export default function BookingSessions({ user }) {
         <div className="space-y-6 animate-fadeIn">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-[#E8E9ED]">Book a Session</h1>
-                <button onClick={() => setShowBookForm(true)} className="btn-primary flex items-center whitespace-nowrap">
-                    <Plus size={20} className="mr-2" />
+                <button onClick={() => setShowBookForm(true)} className="btn-primary flex flex-row items-center justify-center gap-2 whitespace-nowrap">
+                    <Plus size={20} />
                     <span>New Booking</span>
                 </button>
             </div>
