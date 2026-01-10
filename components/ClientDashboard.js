@@ -219,10 +219,10 @@ export default function ClientDashboard({ user, onLogout }) {
                                         <button
                                             key={tab.id}
                                             onClick={() => isMessages ? handleMessagesClick() : setActiveTab(tab.id)}
-                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all relative ${
+                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all relative cursor-pointer ${
                                                 activeTab === tab.id
                                                     ? 'bg-gradient-to-r from-[#FF6B35] to-[#E85A2A] text-white'
-                                                    : 'text-[#9CA3AF] hover:bg-[#1A1F3A]'
+                                                    : 'text-[#9CA3AF] hover:bg-[#1A1F3A] hover:text-[#FF6B35]'
                                             }`}
                                         >
                                             <Icon size={20} />

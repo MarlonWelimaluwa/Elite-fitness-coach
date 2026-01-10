@@ -191,9 +191,9 @@ export default function WorkoutTracker({ user }) {
         <div className="space-y-6 animate-fadeIn">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-[#E8E9ED]">Workout Tracker</h1>
-                <button onClick={() => { setShowAddForm(true); setEditingWorkout(null); }} className="btn-primary flex items-center">
+                <button onClick={() => { setShowAddForm(true); setEditingWorkout(null); }} className="btn-primary flex items-center whitespace-nowrap">
                     <Plus size={20} className="mr-2" />
-                    Log Workout
+                    <span>Log Workout</span>
                 </button>
             </div>
 
